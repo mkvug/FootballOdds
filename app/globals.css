@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Light is the list-page default; the game view always forces the dark set (spec §8). */
+:root {
+  color-scheme: light dark;
+  --bg: #f2f3f5;
+  --surface: #ffffff;
+  --surface-2: #e8eaee;
+  --ink: #0d1014;
+  --muted: #566070;
+  --line: #d8dce2;
+  --live: #d4142c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0d10;
+    --surface: #14181d;
+    --surface-2: #1c2128;
+    --ink: #eef1f4;
+    --muted: #9aa4b1;
+    --line: #272d36;
+    --live: #ff4a5e;
+  }
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --surface: #14181d;
+  --surface-2: #1c2128;
+  --ink: #eef1f4;
+  --muted: #9aa4b1;
+  --line: #272d36;
+  --live: #ff4a5e;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-live: var(--live);
+  --font-sans: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-display), "Arial Narrow", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Probability bar boundary: ease-out, ~600ms (spec G1). */
+.bar-seg {
+  transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bar-div {
+  transition: left 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.swing-toast {
+  animation: swing-toast 6s ease-out forwards;
+}
+
+@keyframes swing-toast {
+  0% { opacity: 0; transform: translateY(10px); }
+  6%, 88% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: none; }
+}
+
+.chart-line {
+  vector-effect: non-scaling-stroke;
+}
+
+.card-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 190px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-seg, .bar-div { transition: none; }
+  .live-dot { animation: none; }
+  .swing-toast { animation: swing-toast-reduced 6s linear forwards; }
+}
+
+@keyframes swing-toast-reduced {
+  0%, 90% { opacity: 1; }
+  100% { opacity: 0; }
+}
