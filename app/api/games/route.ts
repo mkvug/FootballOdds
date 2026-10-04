@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { listGames } from "@/lib/games";
-import { cacheHeaders, isLeague } from "@/lib/http";
+import { cacheHeaders, describeFailure, isLeague } from "@/lib/http";
 import { LEAGUES } from "@/lib/config";
 import type { GameSummary, League } from "@/lib/providers/types";
 
@@ -15,12 +15,15 @@ export async function GET(req: NextRequest) {
 
   const games: GameSummary[] = [];
   const failed: League[] = [];
+  const details: { league: League; reason: string }[] = [];
   let stale = false;
   let ttlMs = Infinity;
   results.forEach((r, i) => {
     if (r.status === "rejected") {
-      console.error(`[api/games] ${leagues[i]} failed:`, r.reason);
+      const reason = describeFailure(r.reason);
+      console.error(`[api/games] ${leagues[i]} failed: ${reason}`, r.reason);
       failed.push(leagues[i]);
+      details.push({ league: leagues[i], reason });
       return;
     }
     games.push(...r.value.value);
@@ -29,7 +32,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (failed.length === leagues.length) {
-    return NextResponse.json({ error: "Upstream unavailable" }, { status: 502 });
+    return NextResponse.json({ error: "Upstream unavailable", details }, { status: 502 });
   }
 
   return NextResponse.json(

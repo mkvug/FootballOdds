@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getGame } from "@/lib/games";
-import { cacheHeaders, isLeague } from "@/lib/http";
+import { cacheHeaders, describeFailure, isLeague } from "@/lib/http";
 import { NotFoundError } from "@/lib/providers/types";
 
 export async function GET(
@@ -29,7 +29,8 @@ export async function GET(
     if (err instanceof NotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }
-    console.error(`[api/game] ${league}/${eventId} failed:`, err);
-    return NextResponse.json({ error: "Upstream unavailable" }, { status: 502 });
+    const reason = describeFailure(err);
+    console.error(`[api/game] ${league}/${eventId} failed: ${reason}`, err);
+    return NextResponse.json({ error: "Upstream unavailable", reason }, { status: 502 });
   }
 }

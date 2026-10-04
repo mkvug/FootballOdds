@@ -27,9 +27,14 @@ const num = (v: string | undefined, fallback: number) => {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 };
 
+const DEFAULT_UA = "FootballOdds/1.0 (personal project)";
+
+/** Header values must be printable ASCII; a stray newline or emoji in the env var would make every fetch throw. */
+export const cleanUserAgent = (raw: string | undefined) =>
+  raw?.replace(/[^\x20-\x7E]/g, "").trim() || DEFAULT_UA;
+
 export const SERVER = {
-  userAgent:
-    process.env.ESPN_USER_AGENT ?? "FootballOdds/1.0 (personal project)",
+  userAgent: cleanUserAgent(process.env.ESPN_USER_AGENT),
   ttlLiveMs: num(process.env.CACHE_TTL_LIVE_S, 5) * 1000,
   ttlListMs: num(process.env.CACHE_TTL_LIST_S, 15) * 1000,
   ttlIdleListMs: num(process.env.CACHE_TTL_IDLE_S, 300) * 1000,

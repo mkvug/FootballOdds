@@ -347,7 +347,9 @@ async function fetchJson(url: string): Promise<unknown> {
     signal: AbortSignal.timeout(SERVER.fetchTimeoutMs),
     cache: "no-store",
   });
-  if (res.status >= 400 && res.status < 500) throw new NotFoundError(`ESPN ${res.status}`);
+  // 400/404 is how ESPN says "no such event". Anything else (403 blocked, 429 throttled,
+  // 5xx) is an upstream failure and must not masquerade as a missing game.
+  if (res.status === 400 || res.status === 404) throw new NotFoundError(`ESPN ${res.status}`);
   if (!res.ok) throw new Error(`ESPN responded ${res.status}`);
   return res.json();
 }

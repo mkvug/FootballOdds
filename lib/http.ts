@@ -11,3 +11,15 @@ export function cacheHeaders(ttlMs: number, stale: boolean): HeadersInit {
       seconds > 0 ? `public, max-age=0, s-maxage=${seconds}` : "no-store",
   };
 }
+
+/**
+ * Short, non-sensitive description of why an upstream call failed (HTTP status, timeout,
+ * DNS/connection code), for logs and the 502 body so a deployment can be diagnosed from the URL alone.
+ */
+export function describeFailure(err: unknown): string {
+  if (!(err instanceof Error)) return "unknown error";
+  const cause = err.cause as { code?: string; message?: string } | undefined;
+  const extra = cause?.code ?? cause?.message;
+  const base = err.name === "TimeoutError" ? "timed out talking to ESPN" : err.message;
+  return (extra ? `${base} (${extra})` : base).slice(0, 200);
+}
