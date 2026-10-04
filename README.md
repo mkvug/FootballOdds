@@ -15,6 +15,13 @@ npm run record-fixtures   # snapshot live ESPN payloads into tests/fixtures/reco
 
 Config (all optional, see `.env.example`): `ESPN_USER_AGENT`, `CACHE_TTL_LIVE_S`, `CACHE_TTL_LIST_S`.
 
+## Hosting note: ESPN may block your host's servers
+
+ESPN's CDN returns `403` to some datacenter IP ranges (Vercel's, as of 2026-10-04). When our `/api` routes can't reach
+ESPN they answer `502`, and the browser then fetches ESPN directly (ESPN allows cross-origin reads) using the same
+parsing code, loaded on demand (`lib/transport.ts`, `lib/direct.ts`). It re-tries the server every 5 minutes.
+The 502 body says why (`details` / `reason`), and the Vercel function log has the same line.
+
 ## Layout
 
 - `app/api/games` – cached JSON for the list and for one game (`?since=` returns only new probability points)

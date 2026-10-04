@@ -128,11 +128,13 @@ test.describe("game list", () => {
     await expect(cardFor(page, GAMES.liveNfl.id)).toBeVisible();
   });
 
-  test("shows an error with a retry when our own API is unreachable", async ({ page }) => {
-    await page.route("**/api/games", (route) => route.fulfill({ status: 502, body: "{}" }));
+  test("shows an error with a retry when neither our server nor ESPN can be reached", async ({ page }) => {
+    await control({ mode: "allDown" }); // the browser fallback fails too
+    await page.route("**/api/games", (route) => route.fulfill({ status: 500, body: "{}" }));
     await page.goto("/");
     await expect(page.getByRole("alert").filter({ hasText: "Can't reach the scoreboard" })).toBeVisible();
 
+    await control({ mode: "normal" });
     await page.unroute("**/api/games");
     await page.getByRole("button", { name: "Try now" }).click();
     await expect(cardFor(page, GAMES.liveNfl.id)).toBeVisible();

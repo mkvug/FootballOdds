@@ -16,9 +16,12 @@ import {
   type WinProbability,
 } from "./types";
 
-// ESPN_BASE_URL lets the E2E suite point the app at a local mock.
+// ESPN_BASE_URL (server) / NEXT_PUBLIC_ESPN_BASE_URL (browser fallback) let the E2E suite
+// point the app at a local mock.
 const BASE =
-  process.env.ESPN_BASE_URL ?? "https://site.api.espn.com/apis/site/v2/sports/football";
+  process.env.ESPN_BASE_URL ??
+  process.env.NEXT_PUBLIC_ESPN_BASE_URL ??
+  "https://site.api.espn.com/apis/site/v2/sports/football";
 const PATH: Record<League, string> = { nfl: "nfl", ncaaf: "college-football" };
 
 // ---------------------------------------------------------------- schemas
@@ -342,10 +345,16 @@ export function mapSummary(
 // ---------------------------------------------------------------- provider
 
 async function fetchJson(url: string): Promise<unknown> {
+  const onServer = typeof window === "undefined";
   const res = await fetch(url, {
-    headers: { "User-Agent": SERVER.userAgent, Accept: "application/json" },
+    // Browsers don't allow setting User-Agent, so only identify ourselves from the server.
+    // `cache: "no-store"` is also server-only: in a browser it adds Cache-Control/Pragma request
+    // headers, which turns the call into a CORS preflight that ESPN rejects.
+    headers: onServer
+      ? { "User-Agent": SERVER.userAgent, Accept: "application/json" }
+      : { Accept: "application/json" },
     signal: AbortSignal.timeout(SERVER.fetchTimeoutMs),
-    cache: "no-store",
+    ...(onServer ? { cache: "no-store" as const } : {}),
   });
   // 400/404 is how ESPN says "no such event". Anything else (403 blocked, 429 throttled,
   // 5xx) is an upstream failure and must not masquerade as a missing game.

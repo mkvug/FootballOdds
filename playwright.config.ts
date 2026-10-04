@@ -34,6 +34,8 @@ export default defineConfig({
       timeout: 180_000,
       env: {
         ESPN_BASE_URL: `http://127.0.0.1:${MOCK_PORT}`,
+        // What the browser fallback calls when our server reports ESPN as unreachable.
+        NEXT_PUBLIC_ESPN_BASE_URL: `http://127.0.0.1:${MOCK_PORT}`,
         CACHE_TTL_LIVE_S: "1",
         CACHE_TTL_LIST_S: "1",
         CACHE_TTL_IDLE_S: "1",

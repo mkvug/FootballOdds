@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { POLL } from "./config";
 import { gameInterval, withBackoff } from "./polling";
+import { fetchGame, fetchGames } from "./transport";
 import type { GameDetail, GamesResponse, League, ProbabilityPoint } from "./providers/types";
 
 /** Whole-second clock. Null on the server so time-dependent text can't mismatch on hydration. */
@@ -24,9 +25,7 @@ export function useGames() {
     queryKey: ["games"],
     queryFn: async ({ signal }) => {
       try {
-        const res = await fetch("/api/games", { signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const body = (await res.json()) as GamesResponse;
+        const body = await fetchGames(signal);
         failures.current = 0;
         return body;
       } catch (err) {
@@ -59,9 +58,7 @@ export function useGame(league: League, eventId: string, initial?: GameDetail) {
       const prev = qc.getQueryData<GameDetail>(key);
       const since = prev?.history.at(-1)?.seq ?? -1;
       try {
-        const res = await fetch(`/api/games/${league}/${eventId}?since=${since}`, { signal });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const next = (await res.json()) as GameDetail;
+        const next = await fetchGame(league, eventId, since, signal);
         failures.current = 0;
         return { ...next, history: mergeHistory(prev?.history ?? [], next.history) };
       } catch (err) {

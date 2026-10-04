@@ -149,7 +149,8 @@ function summaryFor(id) {
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://x");
   const send = (status, data) => {
-    res.writeHead(status, { "content-type": "application/json" });
+    // Real ESPN sends the same header; the browser fallback depends on it.
+    res.writeHead(status, { "content-type": "application/json", "access-control-allow-origin": "*" });
     res.end(JSON.stringify(data));
   };
   state.requests[url.pathname] = (state.requests[url.pathname] ?? 0) + 1;
